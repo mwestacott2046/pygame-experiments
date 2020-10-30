@@ -59,7 +59,7 @@ def side_collision(ball, ball_direction_x, ball_direction_y):
     return ball_direction_x, ball_direction_y
 
 
-def score_collision(ball, ball_direction_x, ball_direction_y):
+def score_collision(ball):
     if ball.left <= 0:
         return 2    # player 2 scored
     elif ball.right >= SCREEN_WIDTH:
@@ -79,9 +79,11 @@ def move_paddle(player_position, up_pressed, down_pressed):
 
 
 def check_ball_paddle_collision(ball, player1_paddle, player2_paddle, ball_direction_x):
-    if ball_direction_x < 0 and player1_paddle.right >= ball.left and player1_paddle.left > ball.left and ball.top < player1_paddle.bottom and ball.bottom > player1_paddle.top:
+    if ball_direction_x < 0 and player1_paddle.right >= ball.left and player1_paddle.left > ball.left and \
+            ball.top < player1_paddle.bottom and ball.bottom > player1_paddle.top:
         return -1
-    elif ball_direction_x > 0 and ball.right >= player2_paddle.left and player2_paddle.right <= ball.right and ball.top < player2_paddle.bottom and ball.bottom > player2_paddle.top:
+    elif ball_direction_x > 0 and ball.right >= player2_paddle.left and player2_paddle.right <= ball.right and \
+            ball.top < player2_paddle.bottom and ball.bottom > player2_paddle.top:
         return -1
     else:
         return 1
@@ -145,6 +147,14 @@ def draw_score(game_screen, player1_score, player2_score):
     game_screen.blit(score2, (SCREEN_WIDTH - 80, 20))
 
 
+def draw_game_screen(ball, game_screen, player1_paddle, player1_score, player2_paddle, player2_score):
+    draw_arena(game_screen)
+    draw_paddle(game_screen, player1_paddle)
+    draw_paddle(game_screen, player2_paddle)
+    draw_ball(game_screen, ball)
+    draw_score(game_screen, player1_score, player2_score)
+
+
 def main():
     size = (SCREEN_WIDTH, SCREEN_HEIGHT)
     pygame.init()
@@ -193,21 +203,23 @@ def main():
                     ball.y = ((PADDLE_SIZE // 2) - BALL_SIZE / 2) + player2_paddle.top
 
         ball_direction_x, ball_direction_y = side_collision(ball, ball_direction_x, ball_direction_y)
-        player_scored = score_collision(ball, ball_direction_x, ball_direction_y)
+        player_scored = score_collision(ball)
 
         if player_scored == 0:
-            # do score
+            # no score
             ball = move_ball(ball, ball_direction_x, ball_direction_y)
 
             if player1_is_ai:
                 player1_paddle = ai_player(ball, ball_direction_x, player1_paddle, True)
             else:
-                player1_paddle.y = move_paddle(player1_paddle.y, controls.player1_up_pressed, controls.player1_down_pressed)
+                player1_paddle.y = move_paddle(player1_paddle.y, controls.player1_up_pressed,
+                                               controls.player1_down_pressed)
 
             if player2_is_ai:
                 player2_paddle = ai_player(ball, ball_direction_x, player2_paddle, False)
             else:
-                player2_paddle.y = move_paddle(player2_paddle.y, controls.player2_up_pressed, controls.player2_down_pressed)
+                player2_paddle.y = move_paddle(player2_paddle.y, controls.player2_up_pressed,
+                                               controls.player2_down_pressed)
 
             direction_modifier = check_ball_paddle_collision(ball, player1_paddle, player2_paddle, ball_direction_x)
             ball_direction_x = ball_direction_x * direction_modifier
@@ -232,12 +244,7 @@ def main():
                 # print("Player 1:", player1_score, " Player 2:", player2_score)
                 score_counted = True
 
-        draw_arena(game_screen)
-        draw_paddle(game_screen, player1_paddle)
-        draw_paddle(game_screen, player2_paddle)
-        draw_ball(game_screen, ball)
-
-        draw_score(game_screen, player1_score, player2_score)
+        draw_game_screen(ball, game_screen, player1_paddle, player1_score, player2_paddle, player2_score)
 
         # flip and wait
         pygame.display.flip()
